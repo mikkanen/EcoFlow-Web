@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☀️ EcoFlow Aurinkopaneeli</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 800px; }
+        .stats { display: flex; justify-content: space-around; margin-bottom: 2rem; flex-wrap: wrap; }
+        .stat { margin: 0.5rem; }
+        .stat h2 { margin: 0; font-size: 1.2rem; color: #555; }
+        .stat p { margin: 0.2rem 0; font-size: 2.5rem; font-weight: bold; }
+        #voltage { color: #007ACC; }
+        #current { color: #2E8B57; }
+        #power { color: #ffa500; }
+        #soc { color: #333; } /* LISÄTTY */
+        #chart-container { width: 100%; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>EcoFlow Aurinkopaneelijärjestelmä</h1>
+        <div class="stats">
+            <div class="stat">
+                <h2>🔋 Akun varaus</h2>
+                <p id="soc">-- %</p>
+            </div>
+            <div class="stat">
+                <h2>Jännite</h2>
+                <p id="voltage">-- V</p>
+            </div>
+            <div class="stat">
+                <h2>Virta</h2>
+                <p id="current">-- A</p>
+            </div>
+            <div class="stat">
+                <h2>Teho</h2>
+                <p id="power">-- W</p>
+            </div>
+        </div>
+        <div id="chart-container">
+            <canvas id="solarChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('solarChart').getContext('2d');
+        const solarChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    { label: 'Jännite (V)', borderColor: '#007ACC', yAxisID: 'y-voltage', tension: 0.3 },
+                    { label: 'Virta (A)', borderColor: '#2E8B57', yAxisID: 'y-current', tension: 0.3 }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { type: 'time', time: { unit: 'minute' } },
+                    'y-voltage': { type: 'linear', position: 'left', min: 0, max: 150, title: { display: true, text: 'Jännite (V)' } },
+                    'y-current': { type: 'linear', position: 'right', min: 0, max: 15, title: { display: true, text: 'Virta (A)' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+
+        function updateData() {
+            fetch('/api/data')
+                .then(response => response.json())
+                .then(data => {
+                    // Päivitetään numeroarvot
+                    document.getElementById('soc').textContent = `${data.soc} %`; // LISÄTTY
+                    document.getElementById('voltage').textContent = `${data.voltage.toFixed(1)} V`;
+                    document.getElementById('current').textContent = `${data.current.toFixed(2)} A`;
+                    document.getElementById('power').textContent = `${data.power.toFixed(0)} W`;
+
+                    // Lisätään data kuvaajaan
+                    const now = Date.now();
+                    solarChart.data.labels.push(now);
+                    solarChart.data.datasets[0].data.push(data.voltage);
+                    solarChart.data.datasets[1].data.push(data.current);
+
+                    const maxHistory = 60;
+                    while (solarChart.data.labels.length > maxHistory) {
+                        solarChart.data.labels.shift();
+                        solarChart.data.datasets.forEach(dataset => dataset.data.shift());
+                    }
+                    solarChart.update('none');
+                })
+                .catch(error => console.error('Virhe datan päivityksessä:', error));
+        }
+
+        setInterval(updateData, 10000);
+        updateData();
+    </script>
+</body>
+</html>
