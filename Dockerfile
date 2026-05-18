@@ -13,9 +13,9 @@ COPY app.py .
 COPY templates templates
 
 # Asetetaan ympäristömuuttujat (Nämä annetaan myöhemmin Docker-komennossa)
-ENV ECOFLOW_ACCESS_KEY=""
-ENV ECOFLOW_SECRET_KEY=""
-ENV ECOFLOW_SN=""
+# ENV ECOFLOW_ACCESS_KEY=""
+# ENV ECOFLOW_SECRET_KEY=""
+# ENV ECOFLOW_SN=""
 
 # Kerrotaan Dockerille, että kontti kuuntelee porttia 5000
 EXPOSE 5000
