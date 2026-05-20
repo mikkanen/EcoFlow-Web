@@ -1,0 +1,21 @@
+
+curl -I http://192.168.1.32:5002
+curl -I http://localhost:5002
+
+netstat -tulpn | grep :5002
+
+docker stop ecoflow-app
+docker rm -fv ecoflow-app
+docker system prune -a --volumes -f
+docker build --no-cache -t ecoflow-app .
+
+docker run -d \
+   --name ecoflow-app \
+   --restart always \
+   -p 5002:5002 \
+   --env-file .env \
+   ecoflow-app
+
+docker ps
+docker logs ecoflow-app
+
