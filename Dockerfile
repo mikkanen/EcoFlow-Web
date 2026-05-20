@@ -17,8 +17,8 @@ COPY templates templates
 # ENV ECOFLOW_SECRET_KEY=""
 # ENV ECOFLOW_SN=""
 
-# Kerrotaan Dockerille, että kontti kuuntelee porttia 5000
-EXPOSE 5000
+# Kerrotaan Dockerille, että kontti kuuntelee porttia 5002
+EXPOSE 5002
 
 # Komento, joka suoritetaan, kun kontti käynnistyy
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5002"]
